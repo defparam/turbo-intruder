@@ -18,7 +18,7 @@ class BurpExtender(): IBurpExtender, IExtensionStateListener {
         Utils.setBurpPresent(callbacks)
         callbacks.registerScannerCheck(Utils.witnessedWords)
         callbacks.registerExtensionStateListener(this)
-        callbacks.setExtensionName("Turbo Intruder")
+        callbacks.setExtensionName("Turbo Intruder w/Haptyc")
         Utils.out("Loaded Turbo Intruder v$version")
 
         Utilities(callbacks, HashMap(), "Turbo Intruder")
@@ -26,6 +26,7 @@ class BurpExtender(): IBurpExtender, IExtensionStateListener {
         Utilities.globalSettings.registerSetting("line-numbers", true);
         Utilities.globalSettings.registerSetting("show-eol", false);
         Utilities.globalSettings.registerSetting("visible-whitespace", false);
+        Utilities.globalSettings.registerSetting("Haptyc Helper", false);
         SwingUtilities.invokeLater(ConfigMenu())
     }
 }

@@ -15,6 +15,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.*
 import kotlin.concurrent.thread
+import java.util.regex.MatchResult
 
 
 class Scripts() {
@@ -75,14 +76,67 @@ fun evalJython(code: String, baseRequest: String, rawRequest: ByteArray, endpoin
     }
 }
 
-class OfferTurboIntruder(): IContextMenuFactory {
+class OfferTurboIntruder(): IContextMenuFactory, ActionListener  {
+    var HaptycScript: String? = null
+    var HaptycTags: MutableList<String> = mutableListOf()
+    var Message: IHttpRequestResponse? = null
+    var bounds = IntArray(0)
+
+    override fun actionPerformed(event: ActionEvent) {
+        val cmd = event.actionCommand
+        if (cmd.substring(cmd.count()-9) == "...[+end]") {
+            if ((bounds.count() != 2) || (Message == null))
+                return
+            val transform = cmd.split("]...[").get(0).substring(2)
+            var reqtext = Message!!.request.toString(Charsets.UTF_8)
+            reqtext = reqtext.substring(0,bounds[0]) + "[+$transform]" + reqtext.substring(bounds[0],bounds[1]) + "[+end]" + reqtext.substring(bounds[1])
+            val tiframe = TurboIntruderFrame(Message!!, IntArray(0), HaptycScript, reqtext.toByteArray(Charsets.UTF_8))
+            tiframe.actionPerformed(event)
+
+            thread {
+                while (true)
+                {
+                    Thread.sleep(10)
+                    try { // defaultButton may not be set up yet
+                        if (tiframe.rootPane.defaultButton.text.equals("Attack"))
+                            break
+                    } catch (ex: Exception) {
+                        continue
+                    }
+                }
+                tiframe.rootPane.defaultButton.doClick()
+            }
+        }
+    }
+
     override fun createMenuItems(invocation: IContextMenuInvocation?): MutableList<JMenuItem> {
         val options = ArrayList<JMenuItem>()
         if (invocation != null && invocation.selectedMessages != null && invocation.selectedMessages[0] != null && invocation.selectedMessages[0].httpService != null) {
             val probeButton = JMenuItem("Send to turbo intruder")
-            val bounds = invocation.selectionBounds ?: IntArray(0)
+            bounds = invocation.selectionBounds ?: IntArray(0)
             probeButton.addActionListener(TurboIntruderFrame(invocation.selectedMessages[0], bounds, null, null))
             options.add(probeButton)
+
+            if (Utilities.globalSettings.getBoolean("Haptyc Helper")) {
+                Message = invocation.selectedMessages[0]
+                HaptycScript = Utils.callbacks.loadExtensionSetting("defaultScript")
+				if (HaptycScript != null)
+				{
+					val ltags = """test_[A-Za-z0-9]+""".toRegex().findAll(HaptycScript!!).toList()
+					HaptycTags = mutableListOf()
+					for (tag in ltags) {
+						HaptycTags.add(tag.value.substring(5))
+					}
+
+					for (tag in HaptycTags) {
+						val probeButton = JMenuItem("[+$tag]...[+end]")
+						probeButton.addActionListener(this)
+						options.add(probeButton)
+
+					}
+				}
+            }
+
         }
         return options
     }
