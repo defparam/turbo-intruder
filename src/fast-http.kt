@@ -120,21 +120,19 @@ class OfferTurboIntruder(): IContextMenuFactory, ActionListener  {
             if (Utilities.globalSettings.getBoolean("Haptyc Helper")) {
                 Message = invocation.selectedMessages[0]
                 HaptycScript = Utils.callbacks.loadExtensionSetting("defaultScript")
-				if (HaptycScript != null)
-				{
-					val ltags = """test_[A-Za-z0-9]+""".toRegex().findAll(HaptycScript!!).toList()
-					HaptycTags = mutableListOf()
-					for (tag in ltags) {
-						HaptycTags.add(tag.value.substring(5))
-					}
-
-					for (tag in HaptycTags) {
-						val probeButton = JMenuItem("[+$tag]...[+end]")
-						probeButton.addActionListener(this)
-						options.add(probeButton)
-
-					}
-				}
+		if (HaptycScript != null)
+		{
+			val ltags = """test_[A-Za-z0-9]+""".toRegex().findAll(HaptycScript!!).toList()
+			HaptycTags = mutableListOf()
+			for (tag in ltags) {
+				HaptycTags.add(tag.value.substring(5))
+			}
+			for (tag in HaptycTags) {
+				val probeButton = JMenuItem("[+$tag]...[+end]")
+				probeButton.addActionListener(this)
+				options.add(probeButton)
+			}
+		}
             }
 
         }
